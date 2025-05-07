@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<h3>Hello,</h3>
+<p>This is to confirm a recent withdrawal of <strong th:text="${amount}"></strong> from your account.</p>
+<p>Remaining balance: <strong th:text="${balance}"></strong></p>
+<p>Time: <span th:text="${timestamp}"></span></p>
+<hr/>
+<p>If this wasn't you, please contact support immediately.</p>
+</body>
+</html>

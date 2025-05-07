@@ -1,0 +1,19 @@
+spring:
+  application:
+    name: atm
+  datasource:
+    url: jdbc:mysql://localhost:3306/atm
+    username: root
+    password:
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: niyitanganihonor@gmail.com
+    password:
+    properties:
+      mail:
+        smtp:
+          auth:true
+        starttls:
+          enable:true
+
