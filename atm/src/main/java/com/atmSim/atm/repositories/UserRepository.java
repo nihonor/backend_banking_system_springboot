@@ -1,12 +1,15 @@
 package com.atmSim.atm.repositories;
 
+
 import com.atmSim.atm.entities.User;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
-public interface UserRepository extends JpaRepository<User, Long> {
-    Optional<User> findByUsername(String username);
-
+@EnableJpaRepositories
+@Repository
+public interface UserRepository extends JpaRepository<User,Integer> {
+    User findByEmail(String email);
 }
