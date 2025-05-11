@@ -7,20 +7,29 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/users")
+@CrossOrigin("*")
+@RequestMapping("")
 public class UserController {
 
     private final UserService userService;
+
     public UserController(UserService userService) {
         this.userService = userService;
     }
 
     @GetMapping
+    public String getHello() {
+        return "Hello World";
+    }
+
+    @GetMapping("/api/users")
     public List<User> getAllUsers() {
         return userService.findAllUsers();
     }
 
-    @GetMapping("/{id}")
+
+
+    @GetMapping("/api/users/{id}")
     public User getUserById(@PathVariable Long id) {
         return userService.getUserById(id);
     }
@@ -30,17 +39,17 @@ public class UserController {
         return userService.createUser(user);
     }
 
-    @PutMapping("/deposit/{id}")
+    @PutMapping("/api/users/deposit/{id}")
     public User deposit(@PathVariable Long id, @RequestParam double amount) {
         return userService.deposit(id, amount);
     }
 
-    @PutMapping("/withdraw/{id}")
+    @PutMapping("/api/users/withdraw/{id}")
     public User withdraw(@PathVariable Long id, @RequestParam double amount) {
         return userService.withdraw(id, amount);
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/api/users/{id}")
     public void deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);
     }
