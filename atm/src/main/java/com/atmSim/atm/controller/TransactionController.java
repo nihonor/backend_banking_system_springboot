@@ -41,7 +41,7 @@ public class TransactionController {
         return ResponseEntity.ok(user.getBalance());
     }
 
-    @GetMapping("/history/user/{id}")
+        @GetMapping("/history/user/{id}")
     public ResponseEntity<List<TransactionDTO>> getUserHistory(@PathVariable Long id) {
         List<Transaction> transactions = transactionService.getAllTransactionsByUserId(id);
         List<TransactionDTO> dtos = transactions.stream()
