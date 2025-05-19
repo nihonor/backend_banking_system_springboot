@@ -19,7 +19,7 @@ public class TransactionDTO {
 
     public TransactionDTO(Transaction transaction) {
         this.id = Long.valueOf(transaction.getId());
-        this.type = transaction.getType();
+        this.type = transaction.getTransactionType();
         this.amount = transaction.getAmount();
         this.timestamp = transaction.getTimestamp();
     }
