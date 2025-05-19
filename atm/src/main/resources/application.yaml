@@ -12,21 +12,28 @@ spring:
     password:
     properties:
       mail:
-        smtp:
-          auth:true
-        starttls:
-          enable:true
+        smtp: auth:true
+        starttls: enable:true
   security:
     user:
       name: honore
       password: 12345
 
-
   jpa:
     hibernate:
-      ddl-auto: update  # Options: none, validate, update, create, create-drop
-    show-sql: true      # Optional: logs generated SQL to the console
+      ddl-auto: update # Options: none, validate, update, create, create-drop
+    show-sql: true # Optional: logs generated SQL to the console
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQL8Dialect
+# JWT Configuration
+jwt:
+  secret: your_jwt_secret_key_here_make_it_long_and_secure_in_production # Minimum 256-bit (32 characters)
+  expiration: 86400 # in seconds (24 hours)
+  issuer: your-atm-application-name
+  header: Authorization
+  prefix: Bearer
+  refresh:
+    expiration: 604800 # 7 days for refresh tokens
+
 
