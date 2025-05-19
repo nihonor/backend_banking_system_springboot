@@ -1,91 +1,115 @@
 package com.atmSim.atm.service;
 
+import com.atmSim.atm.entities.Account;
 import com.atmSim.atm.entities.User;
+import com.atmSim.atm.repositories.AccountRepository;
 import com.atmSim.atm.repositories.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 @Service
-public class UserService {
-
-    @Autowired
-    private EmailService emailService;
-
-//    @Autowired
-//    private PasswordEncoder passwordEncoder;
+@RequiredArgsConstructor
+public class UserService implements UserDetailsService {
 
     private final UserRepository userRepository;
+    private final AccountRepository accountRepository;
+    private final EmailService emailService;
+    private final PasswordEncoder passwordEncoder;
+    private final AuthenticationConfiguration authenticationConfiguration;
 
-    public UserService(UserRepository userRepository) {
-        this.userRepository = userRepository;
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        return new org.springframework.security.core.userdetails.User(
+                user.getUsername(),
+                user.getPassword(),
+                Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + user.getRole())));
     }
 
-    // Method to find all users
+    public User getUserById(Integer id) {
+        return userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
+    }
+
+    public List<Account> getUserAccounts(Integer userId) {
+        User user = getUserById(userId);
+        return user.getAccounts();
+    }
+
+    public Account createAccount(Integer userId, String accountType) {
+        User user = getUserById(userId);
+        Account account = new Account();
+        account.setAccountNumber(generateAccountNumber());
+        account.setAccountType(accountType);
+        account.setBalance(0.0);
+        account.setUser(user);
+        user.getAccounts().add(account);
+        userRepository.save(user);
+        return account;
+    }
+
+    private String generateAccountNumber() {
+        // Simple implementation - replace with a more robust solution
+        return "ACC" + System.currentTimeMillis();
+    }
+
+    // Admin methods
     public List<User> findAllUsers() {
         return userRepository.findAll();
     }
 
-    // Method to get a user by ID
-    public User getUserById(Long id) {
-        return userRepository.findById(Math.toIntExact(id))
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
+    public List<Account> findAllAccounts() {
+        return accountRepository.findAll();
     }
 
-    // Method to create a new user
-    public User createUser(User user) {
-//        String hashedPassword = passwordEncoder.encode(user.getPassword());
-        user.setPassword(user.getPassword());
-        return userRepository.save(user);
+    public void deleteUser(Integer id) {
+        userRepository.deleteById(id);
     }
 
-    // Method to deposit money
-    public User deposit(Long id, double amount) {
-        User user = getUserById(id);
-        user.setBalance(user.getBalance() + amount);
-        return userRepository.save(user);
+    public void deleteAccount(Long id) {
+        accountRepository.deleteById(id);
     }
 
-    // Method to withdraw money
-    public User withdraw(Long id, double amount) {
-        User user = getUserById(id);
-        if (user.getBalance() >= amount) {
-            user.setBalance(user.getBalance() - amount);
-        } else {
-            throw new RuntimeException("Insufficient balance");
+    // User registration
+    public User registerUser(User user) {
+        if (userRepository.findByUsername(user.getUsername()).isPresent()) {
+            throw new RuntimeException("Username already exists");
         }
-        User updatedUser = userRepository.save(user);
+        user.setRole("USER"); // Set default role
+        user.setPassword(passwordEncoder.encode(user.getPassword())); // Hash password
+        return userRepository.save(user);
+    }
+
+    // Role validation
+    public boolean isAdmin(Integer userId) {
+        User user = getUserById(userId);
+        return "ADMIN".equals(user.getRole());
+    }
+
+    // Login validation
+    public User validateUser(String username, String password) {
         try {
-            emailService.sendWithdrawalEmail(user.getEmail(), amount, user.getBalance());
+            AuthenticationManager authenticationManager = authenticationConfiguration.getAuthenticationManager();
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(username, password));
+
+            return userRepository.findByUsername(username)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
         } catch (Exception e) {
-            System.err.println("Failed to send withdrawal email: " + e.getMessage());
+            throw new RuntimeException("Invalid credentials");
         }
-        return updatedUser;
     }
-
-    // Method to delete a user by ID
-    public void deleteUser(Long id) {
-        userRepository.deleteById(Math.toIntExact(id));
-    }
-
-//    // Method to authenticate a user by username and password
-//    public User authenticateUser(String email, String password) {
-//        // First find by email only
-//        User user = userRepository.findByEmail(email);
-//
-//        if (user == null) {
-//            throw new RuntimeException("User not found with email: " + email);
-//        }
-//
-//        // Then verify the password
-//        if (passwordEncoder.matches(password, user.getPassword())) {
-//            return user;
-//        } else {
-//            throw new RuntimeException("Invalid password");
-//        }
-//
-//    }
 }
