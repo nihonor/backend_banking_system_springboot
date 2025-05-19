@@ -1,9 +1,12 @@
 package com.atmSim.atm.entities;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
+
+import java.util.List;
 
 @Getter
 @Setter
@@ -22,11 +25,13 @@ public class User {
     @Column(name = "password", nullable = false, length = 100)
     private String password;
 
-    @ColumnDefault("0")
-    @Column(name = "balance", nullable = false)
-    private Double balance;
-
     @Column(name = "email")
     private String email;
 
+    @Column(name = "role", nullable = false)
+    private String role; // e.g., "USER", "ADMIN"
+
+    @JsonManagedReference
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<Account> accounts;
 }
