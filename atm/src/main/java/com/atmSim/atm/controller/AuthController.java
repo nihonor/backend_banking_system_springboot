@@ -1,31 +1,39 @@
 package com.atmSim.atm.controller;
 
-import com.atmSim.atm.entities.LoginRequest;
 import com.atmSim.atm.entities.User;
+import com.atmSim.atm.service.JwtService;
 import com.atmSim.atm.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @RestController
-@CrossOrigin("*")
+@AllArgsConstructor
 @RequestMapping("/api/auth")
+@Tag(name = "Authentication", description = "Authentication management APIs")
 public class AuthController {
 
     private final UserService userService;
+    private final JwtService jwtService;
 
-    public AuthController(UserService userService) {
-        this.userService = userService;
+    @Operation(summary = "Register new user", description = "Create a new user account")
+    @PostMapping("/register")
+    public ResponseEntity<User> registerUser(@RequestBody User user) {
+        return ResponseEntity.ok(userService.registerUser(user));
     }
 
-
-//
-//    @PostMapping("/login")
-//    public ResponseEntity<String> login(@RequestBody LoginRequest loginRequest) {
-//        try {
-//            User authenticatedUser = userService.authenticateUser(loginRequest.getEmail(), loginRequest.getPassword());
-//            return ResponseEntity.ok("Login successful for user: " + authenticatedUser.getUsername());
-//        } catch (RuntimeException e) {
-//            return ResponseEntity.status(401).body("Invalid credentials: " + e.getMessage());
-//        }
-//    }
+    @Operation(summary = "Login user", description = "Authenticate user and return JWT token")
+    @PostMapping("/login")
+    public ResponseEntity<Map<String, String>> loginUser(@RequestBody User user) {
+        User validatedUser = userService.validateUser(user.getUsername(), user.getPassword());
+        String token = jwtService.generateToken(validatedUser.getUsername());
+        Map<String, String> response = new HashMap<>();
+        response.put("token", token);
+        return ResponseEntity.ok(response);
+    }
 }
