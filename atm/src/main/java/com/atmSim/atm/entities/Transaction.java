@@ -16,22 +16,28 @@ import java.time.Instant;
 @Table(name = "transactions", schema = "atm")
 public class Transaction {
     @Id
-    @Column(name = "id", nullable = false)
-    private Integer id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @OnDelete(action = OnDeleteAction.CASCADE)
-    @JoinColumn(name = "userId", nullable = false)
-    private User user;
-
-    @Column(name = "type", nullable = false, length = 20)
-    private String type;
+    @Column(name = "transaction_type", nullable = false)
+    private String transactionType; // e.g., "DEPOSIT", "WITHDRAW", "TRANSFER"
 
     @Column(name = "amount", nullable = false)
     private Double amount;
 
+    @ManyToOne
+    @JoinColumn(name = "from_account_id")
+    private Account fromAccount;
+
+    @ManyToOne
+    @JoinColumn(name = "to_account_id")
+    private Account toAccount;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
     @ColumnDefault("current_timestamp()")
     @Column(name = "timestamp", nullable = false)
     private Instant timestamp;
-
 }
