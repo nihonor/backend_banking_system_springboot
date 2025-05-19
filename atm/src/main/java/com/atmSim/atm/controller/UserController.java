@@ -1,56 +1,40 @@
 package com.atmSim.atm.controller;
 
+import com.atmSim.atm.entities.Account;
 import com.atmSim.atm.entities.User;
 import com.atmSim.atm.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @CrossOrigin("*")
-@RequestMapping("")
+@RequestMapping("/api/users")
+@SecurityRequirement(name = "bearerAuth")
 public class UserController {
 
-    private final UserService userService;
+    @Autowired
+    private UserService userService;
 
-    public UserController(UserService userService) {
-        this.userService = userService;
+    @Operation(summary = "Get user by ID")
+    @GetMapping("/{id}")
+    public ResponseEntity<User> getUserById(@PathVariable Integer id) {
+        return ResponseEntity.ok(userService.getUserById(id));
     }
 
-    @GetMapping
-    public String getHello() {
-        return "Hello World";
+    @Operation(summary = "Get user accounts")
+    @GetMapping("/{id}/accounts")
+    public ResponseEntity<List<Account>> getUserAccounts(@PathVariable Integer id) {
+        return ResponseEntity.ok(userService.getUserAccounts(id));
     }
 
-    @GetMapping("/api/users")
-    public List<User> getAllUsers() {
-        return userService.findAllUsers();
-    }
-
-
-
-    @GetMapping("/api/users/{id}")
-    public User getUserById(@PathVariable Long id) {
-        return userService.getUserById(id);
-    }
-
-    @PostMapping
-    public User createUser(@RequestBody User user) {
-        return userService.createUser(user);
-    }
-
-    @PutMapping("/api/users/deposit/{id}")
-    public User deposit(@PathVariable Long id, @RequestParam double amount) {
-        return userService.deposit(id, amount);
-    }
-
-    @PutMapping("/api/users/withdraw/{id}")
-    public User withdraw(@PathVariable Long id, @RequestParam double amount) {
-        return userService.withdraw(id, amount);
-    }
-
-    @DeleteMapping("/api/users/{id}")
-    public void deleteUser(@PathVariable Long id) {
-        userService.deleteUser(id);
+    @Operation(summary = "Create new account for user")
+    @PostMapping("/{id}/accounts")
+    public ResponseEntity<Account> createAccount(@PathVariable Integer id, @RequestParam String accountType) {
+        return ResponseEntity.ok(userService.createAccount(id, accountType));
     }
 }
