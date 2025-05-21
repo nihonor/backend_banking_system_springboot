@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@CrossOrigin(allowCredentials = "true",origins = "http://localhost:5000" )
+@CrossOrigin(allowCredentials = "true", origins = { "http://localhost:3000", "http://localhost:5000" })
 @RequestMapping("/api/users")
 @SecurityRequirement(name = "bearerAuth")
 public class UserController {
@@ -37,6 +37,4 @@ public class UserController {
     public ResponseEntity<Account> createAccount(@PathVariable Integer id, @RequestParam String accountType) {
         return ResponseEntity.ok(userService.createAccount(id, accountType));
     }
-
-
 }

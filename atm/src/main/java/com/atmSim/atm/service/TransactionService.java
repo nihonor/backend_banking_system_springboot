@@ -5,6 +5,7 @@ import com.atmSim.atm.entities.Transaction;
 import com.atmSim.atm.entities.User;
 import com.atmSim.atm.repositories.AccountRepository;
 import com.atmSim.atm.repositories.TransactionRepository;
+import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,6 +19,7 @@ public class TransactionService {
 
     private final AccountRepository accountRepository;
     private final TransactionRepository transactionRepository;
+    private final EmailService emailService;
 
     @Transactional
     public Account deposit(String accountNumber, double amount) {
@@ -25,7 +27,22 @@ public class TransactionService {
                 .orElseThrow(() -> new RuntimeException("Account not found"));
         account.setBalance(account.getBalance() + amount);
         Account savedAccount = accountRepository.save(account);
-        recordTransaction("DEPOSIT", amount, null, savedAccount, savedAccount.getUser());
+
+        Transaction transaction = recordTransaction("DEPOSIT", amount, null, savedAccount, savedAccount.getUser());
+
+        try {
+            emailService.sendTransactionNotification(
+                    savedAccount.getUser().getEmail(),
+                    "DEPOSIT",
+                    amount,
+                    savedAccount.getBalance(),
+                    null,
+                    savedAccount.getAccountNumber());
+        } catch (MessagingException e) {
+            // Log the error but don't stop the transaction
+            System.err.println("Failed to send email notification: " + e.getMessage());
+        }
+
         return savedAccount;
     }
 
@@ -36,7 +53,21 @@ public class TransactionService {
         if (account.getBalance() >= amount) {
             account.setBalance(account.getBalance() - amount);
             Account savedAccount = accountRepository.save(account);
-            recordTransaction("WITHDRAW", amount, savedAccount, null, savedAccount.getUser());
+
+            Transaction transaction = recordTransaction("WITHDRAW", amount, savedAccount, null, savedAccount.getUser());
+
+            try {
+                emailService.sendTransactionNotification(
+                        savedAccount.getUser().getEmail(),
+                        "WITHDRAW",
+                        amount,
+                        savedAccount.getBalance(),
+                        savedAccount.getAccountNumber(),
+                        null);
+            } catch (MessagingException e) {
+                System.err.println("Failed to send email notification: " + e.getMessage());
+            }
+
             return savedAccount;
         } else {
             throw new RuntimeException("Insufficient balance");
@@ -57,13 +88,41 @@ public class TransactionService {
             accountRepository.save(fromAccount);
             accountRepository.save(toAccount);
 
-            recordTransaction("TRANSFER", amount, fromAccount, toAccount, fromAccount.getUser());
+            Transaction transaction = recordTransaction("TRANSFER", amount, fromAccount, toAccount,
+                    fromAccount.getUser());
+
+            // Send notification to sender
+            try {
+                emailService.sendTransactionNotification(
+                        fromAccount.getUser().getEmail(),
+                        "TRANSFER",
+                        amount,
+                        fromAccount.getBalance(),
+                        fromAccount.getAccountNumber(),
+                        toAccount.getAccountNumber());
+            } catch (MessagingException e) {
+                System.err.println("Failed to send email notification to sender: " + e.getMessage());
+            }
+
+            // Send notification to receiver
+            try {
+                emailService.sendTransactionNotification(
+                        toAccount.getUser().getEmail(),
+                        "TRANSFER",
+                        amount,
+                        toAccount.getBalance(),
+                        fromAccount.getAccountNumber(),
+                        toAccount.getAccountNumber());
+            } catch (MessagingException e) {
+                System.err.println("Failed to send email notification to receiver: " + e.getMessage());
+            }
         } else {
             throw new RuntimeException("Insufficient balance");
         }
     }
 
-    private void recordTransaction(String type, double amount, Account fromAccount, Account toAccount, User user) {
+    private Transaction recordTransaction(String type, double amount, Account fromAccount, Account toAccount,
+            User user) {
         Transaction transaction = new Transaction();
         transaction.setTransactionType(type);
         transaction.setAmount(amount);
@@ -71,7 +130,7 @@ public class TransactionService {
         transaction.setToAccount(toAccount);
         transaction.setUser(user);
         transaction.setTimestamp(Instant.now());
-        transactionRepository.save(transaction);
+        return transactionRepository.save(transaction);
     }
 
     public List<Transaction> getAllTransactionsByUserId(Long userId) {

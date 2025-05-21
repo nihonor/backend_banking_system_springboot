@@ -19,23 +19,45 @@ public class EmailService {
     private final JavaMailSender mailSender;
     private final TemplateEngine templateEngine;
 
-    public void sendWithdrawalEmail(String to, double amount, double balance) throws MessagingException {
+    public void sendTransactionNotification(String to, String transactionType, double amount, double balance,
+            String fromAccount, String toAccount) throws MessagingException {
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true);
 
         Context context = new Context();
         context.setVariables(Map.of(
+                "transactionType", transactionType,
                 "amount", amount,
                 "balance", balance,
-                "timestamp", LocalDateTime.now().toString()
-        ));
+                "fromAccount", fromAccount != null ? fromAccount : "N/A",
+                "toAccount", toAccount != null ? toAccount : "N/A",
+                "timestamp", LocalDateTime.now().toString()));
 
-        String htmlContent = templateEngine.process("withdrawal-notification.html", context);
+        String template = getTemplateForTransactionType(transactionType);
+        String htmlContent = templateEngine.process(template, context);
 
         helper.setTo(to);
-        helper.setSubject("ATM Withdrawal Confirmation");
+        helper.setSubject(getSubjectForTransactionType(transactionType));
         helper.setText(htmlContent, true);
 
         mailSender.send(message);
+    }
+
+    private String getTemplateForTransactionType(String transactionType) {
+        return switch (transactionType.toUpperCase()) {
+            case "DEPOSIT" -> "deposit-notification.html";
+            case "WITHDRAW" -> "withdrawal-notification.html";
+            case "TRANSFER" -> "transfer-notification.html";
+            default -> "transaction-notification.html";
+        };
+    }
+
+    private String getSubjectForTransactionType(String transactionType) {
+        return switch (transactionType.toUpperCase()) {
+            case "DEPOSIT" -> "ATM Deposit Confirmation";
+            case "WITHDRAW" -> "ATM Withdrawal Confirmation";
+            case "TRANSFER" -> "ATM Transfer Confirmation";
+            default -> "ATM Transaction Confirmation";
+        };
     }
 }

@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+  <body>
+    <h3>Hello,</h3>
+    <p>This is to confirm a transfer transaction:</p>
+    <ul>
+      <li>Amount: <strong th:text="${amount}"></strong></li>
+      <li>From Account: <strong th:text="${fromAccount}"></strong></li>
+      <li>To Account: <strong th:text="${toAccount}"></strong></li>
+      <li>Updated Balance: <strong th:text="${balance}"></strong></li>
+    </ul>
+    <p>Time: <span th:text="${timestamp}"></span></p>
+    <hr />
+    <p>If this wasn't you, please contact support immediately.</p>
+  </body>
+</html>
