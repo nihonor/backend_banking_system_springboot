@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
 @RestController
 @AllArgsConstructor
 @RequestMapping("/api/transactions")
+@CrossOrigin(allowCredentials = "true", origins = "http://localhost:5000")
 @SecurityRequirement(name = "bearerAuth")
 @Tag(name = "Transactions", description = "Transaction management APIs")
 public class TransactionController {
