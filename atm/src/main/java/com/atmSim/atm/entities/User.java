@@ -31,6 +31,10 @@ public class User {
     @Column(name = "role", nullable = false)
     private String role; // e.g., "USER", "ADMIN"
 
+    @Column(name = "status", nullable = false)
+    @ColumnDefault("'ACTIVE'")
+    private String status; // "ACTIVE" or "SUSPENDED"
+
     @JsonManagedReference
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Account> accounts;
