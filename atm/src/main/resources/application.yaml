@@ -9,11 +9,11 @@
     host: smtp.gmail.com
     port: 587
     username: niyitanganihonor@gmail.com
-    password:
+    password: nkgs gwnv wsza gbcc # App password for Gmail
     properties:
-      mail:
-        smtp: auth:true
-        starttls: enable:true
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+      mail.smtp.starttls.required: true
   security:
     user:
       name: honore
