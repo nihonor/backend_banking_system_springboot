@@ -25,6 +25,11 @@ public class Transaction {
     @Column(name = "amount", nullable = false)
     private Double amount;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    @ColumnDefault("'PENDING'")
+    private TransactionStatus status;
+
     @ManyToOne
     @JoinColumn(name = "from_account_id")
     private Account fromAccount;
