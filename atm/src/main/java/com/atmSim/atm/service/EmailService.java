@@ -19,6 +19,24 @@ public class EmailService {
     private final JavaMailSender mailSender;
     private final TemplateEngine templateEngine;
 
+    public void sendWelcomeEmail(String to, String username) throws MessagingException {
+        MimeMessage message = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(message, true);
+
+        Context context = new Context();
+        context.setVariables(Map.of(
+                "username", username,
+                "timestamp", LocalDateTime.now().toString()));
+
+        String htmlContent = templateEngine.process("welcome-email.html", context);
+
+        helper.setTo(to);
+        helper.setSubject("Welcome to ATM System");
+        helper.setText(htmlContent, true);
+
+        mailSender.send(message);
+    }
+
     public void sendTransactionNotification(String to, String transactionType, double amount, double balance,
             String fromAccount, String toAccount) throws MessagingException {
         MimeMessage message = mailSender.createMimeMessage();
