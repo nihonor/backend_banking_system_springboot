@@ -61,6 +61,22 @@ public class EmailService {
         mailSender.send(message);
     }
 
+    public void sendCreateAccountEmail(String to, String account) throws MessagingException {
+        MimeMessage message = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(message, true);
+
+        Context context = new Context();
+        context.setVariables(Map.of(
+                "account",account
+        ));
+
+        String htmlContent = templateEngine.process("welcome-email.html", context);
+        helper.setTo(to);
+        helper.setSubject("Creating Account");
+        helper.setText(htmlContent, true);
+        mailSender.send(message);
+    }
+
     private String getTemplateForTransactionType(String transactionType) {
         return switch (transactionType.toUpperCase()) {
             case "DEPOSIT" -> "deposit-notification.html";
@@ -69,6 +85,7 @@ public class EmailService {
             default -> "transaction-notification.html";
         };
     }
+
 
     private String getSubjectForTransactionType(String transactionType) {
         return switch (transactionType.toUpperCase()) {

@@ -5,6 +5,7 @@ import com.atmSim.atm.entities.User;
 import com.atmSim.atm.repositories.AccountRepository;
 import com.atmSim.atm.repositories.UserRepository;
 import com.atmSim.atm.repositories.TransactionRepository;
+import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -60,15 +61,26 @@ public class UserService implements UserDetailsService {
     }
 
     public Account createAccount(Integer userId, String accountType) {
-        User user = getUserById(userId);
-        Account account = new Account();
-        account.setAccountNumber(generateAccountNumber());
-        account.setAccountType(accountType);
-        account.setBalance(0.0);
-        account.setUser(user);
-        user.getAccounts().add(account);
-        userRepository.save(user);
-        return account;
+
+            User user = getUserById(userId);
+            Account account = new Account();
+            account.setAccountNumber(generateAccountNumber());
+            account.setAccountType(accountType);
+            account.setBalance(0.0);
+            account.setUser(user);
+            user.getAccounts().add(account);
+            userRepository.save(user);
+
+                try {
+                    emailService.sendCreateAccountEmail(user.getEmail(),account.getAccountNumber());
+                }
+                catch (MessagingException e) {
+                    System.err.println("Failed to send create account email:"+e.getMessage());
+
+                }
+                return account;
+
+
     }
 
     private String generateAccountNumber() {
