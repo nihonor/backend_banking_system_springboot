@@ -118,6 +118,16 @@ public class UserService implements UserDetailsService {
         if (userRepository.findByUsername(user.getUsername()).isPresent()) {
             throw new RuntimeException("Username already exists");
         }
+        if (userRepository.findByEmail(user.getEmail()).isPresent()) {
+            throw new RuntimeException("Email already exists");
+        }
+        if ( userRepository.findByPhoneNumber(user.getPhoneNumber()).isPresent()) {
+            throw new RuntimeException("Phone number already exists");
+        }
+        if ( userRepository.findByNationalId(user.getNationalId()).isPresent()) {
+            throw new RuntimeException("National ID already exists");
+        }
+
         user.setRole("USER"); // Set default role
         user.setStatus("ACTIVE"); // Set default status
         user.setPassword(passwordEncoder.encode(user.getPassword())); // Hash password
