@@ -9,7 +9,7 @@
     host: smtp.gmail.com
     port: 587
     username: niyitanganihonor@gmail.com
-    password: # App password for Gmail
+    password: eiaa xiws essh ffwh
     properties:
       mail.smtp.auth: true
       mail.smtp.starttls.enable: true
